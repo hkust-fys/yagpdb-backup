@@ -1,0 +1,92 @@
+{{ if eq (lower .Message.Content) "worship" }}
+{{ $worshipped_message := "nil" }}
+{{ if .Message.ReferencedMessage }}
+{{ $worshipped_message = .Message.ReferencedMessage }}
+{{ else }}
+{{ $worshipped_message = dbGet .Channel.ID "command target" }}
+{{ if $worshipped_message }}{{ $worshipped_message = getMessage .Channel.ID $worshipped_message.Value }}{{ else }}No previous message found. Say something first for worshipping!{{ return }}{{ end }}
+{{ end }}
+{{ deleteMessage .Channel.ID .Message.ID }}
+{{ $gods := cslice
+  282350514015043587 "Q God" "worship_q" "1228299782574051389" (cslice "ugta" "ctf" "q" "qq") (cslice "quote" "quoty")
+  408576714243833867 "HTGod" "worship_ht" "1289982688786251776" (cslice "ht" "rust") (cslice "htg")
+  480382584606556190 "A God" "worship_a" "1244269108909047860" (cslice "auto") (cslice "tomato")
+  525680975527804929 "C God" "worship_c" "1246068424887500860" (cslice) (cslice "charming")
+  703975494202425374 "CP God" "worship_cp" "1293145323732078624" (cslice) (cslice "cplam")
+  450369255700037632 "Cubic God" "worship_3tothepowern" "1250749261654524006" (cslice "mogu" "mushroom") (cslice "cubic" "cubie")
+  787886146029617173 "D God" "worship_d" "1238818937408327751" (cslice "elec") (cslice "thunder" "dora")
+  461884240456450088 "E God" "worship_e" "1186715166025449554" (cslice "isdn" "design" "e") (cslice "evn" "evan")
+  740570613655011328 "FF" "iloveff" "1081499240532037752" (cslice) (cslice "ffklavier")
+  404294008395792384 "HU God" "worship_hu" "1229337904870850570" (cslice "hu") (cslice "hu tao")
+  539402255221129226 "LK God" "worship_LK" "1229986619428438107" (cslice "kit" "civl" "civil" "lk") (cslice "longkit" "long kit")
+  220787858842189824 "N God" "worship_n" "1229831928182476861" (cslice "cow") (cslice "nuclear")
+  389596491511234562 "V God" "worship_v" "1293145372650111026" (cslice "ice") (cslice "vanadium")
+  586790522157531136 "1 God" "worship_151044" "1293145289632514068" (cslice) (cslice "151044")
+  376343682644836353 "3 God" "worship_3_n" "1243142334703730790" (cslice) (cslice "3_n")
+}}
+{{ $buttons := cslice }}
+{{ $menu_options := cslice }}
+{{ $gods_lookup := sdict }}
+{{ $gods_lookup_regexes := cslice }}
+{{ range $i := div (len $gods) 6 }}
+	{{ $god_userid := index $gods (mult . 6) }}
+	{{ $god_title := index $gods (add (mult . 6) 1) }}
+	{{ $standalone_words := (index $gods (add (mult . 6) 4)).AppendSlice (cslice (joinStr "" (split $god_title " ")) (toString $god_userid)) }}
+	{{ if $god_username := (userArg $god_userid).Username }}{{ $standalone_words = $standalone_words.Append $god_username }}{{ end }}
+	{{ range $standalone_words }}
+		{{ $gods_lookup.Set (lower .) $god_userid }}
+		{{ $gods_lookup_regexes = $gods_lookup_regexes.Append (print "\\b" (reQuoteMeta (lower .)) "\\b") }}
+	{{ end }}
+	{{ range ((index $gods (add (mult . 6) 5)).Append (index $gods (add (mult . 6) 1))).Append (index $gods (add (mult . 6) 2)) }}
+		{{ $gods_lookup.Set (lower .) $god_userid }}
+		{{ $gods_lookup_regexes = $gods_lookup_regexes.Append (reQuoteMeta (lower .)) }}
+	{{ end }}
+{{ end }}
+{{ $gods_mentioned := dict }}
+{{ range reFindAll (joinStr "|" $gods_lookup_regexes) (lower $worshipped_message.Content) }}
+	{{ $gods_mentioned.Set (index $gods_lookup .) true }}
+{{ end }}
+{{ range (div (len $gods) 6) }}
+	{{ $emoji := sdict "name" (index $gods (add (mult . 6) 2)) "id" (index $gods (add (mult . 6) 3)) }}
+	{{ $label := (index $gods (add (mult . 6) 1)) }}
+	{{ $custom_id := (print "addMessageReactions " $worshipped_message.ID " :" (index $emoji "name") ":" (index $emoji "id")) }}
+    {{ $god_userid := index $gods (mult . 6) }}
+	{{ if or (eq $worshipped_message.Author.ID $god_userid) ($gods_mentioned.HasKey $god_userid) }}
+    {{ $buttons = $buttons.Append (cbutton "emoji" $emoji "custom_id" $custom_id "label" $label) }}
+    {{ else }}
+	{{ $description := (userArg $god_userid).Username }}
+	{{ if not $description }}{{ $description = "(not in this server)" }}{{ end }}
+	{{ $menu_options = $menu_options.Append (sdict "label" $label "value" $custom_id "emoji" $emoji "description" $description) }}
+	{{ end }}
+{{ end }}
+{{ range cslice
+  (sdict "name" "can_worship" "id" "1225705955208073257" "animated" false "style" "success")
+  (sdict "name" "🛐" "style" "success")
+  (sdict "name" "in_ust_we_trust" "id" "1094281397629370538" "animated" true "style" "success")
+  (sdict "name" "in_ust_we_worship" "id" "1154668306800844841" "animated" true "style" "success")
+  (sdict "name" "in_ust_we_worship_AaronWang" "id" "1178721372361461790" "animated" true "style" "success")
+  (sdict "name" "dont_worship" "id" "1179242585622061147" "animated" false "style" "danger")
+  (sdict "name" "dont_worship_denied" "id" "1203417041667751997" "animated" false "style" "success")
+  (sdict "name" "can_shitwood" "id" "1283813004642881577" "animated" false "style" "danger")
+  (sdict "name" "shitwood" "id" "1211524611876065282" "animated" false "style" "danger")
+  (sdict "name" "dont_shitwood" "id" "1227913689319870514" "animated" false "style" "success")
+  (sdict "name" "angrywood" "id" "1295097084479017032" "animated" false "style" "success")
+  (sdict "name" "dont_shitwood_denied" "id" "1293323142457983067" "animated" false "style" "danger")
+  (sdict "name" "dont_shitwood_denied_denied" "id" "1293323205272145971" "animated" false "style" "success")
+  (sdict "name" "clownwood" "id" "1232273916781789236" "animated" false "style" "danger")
+}}
+	{{ $emoji := "" }}
+	{{ if index . "animated" }}{{ $emoji = "a" }}{{ end }}
+	{{ if index . "id" }}{{ $emoji = print $emoji ":" (index . "name") ":" (index . "id") }}{{ else }}{{ $emoji = index . "name" }}{{ end }}
+    {{ $buttons = $buttons.Append (cbutton "emoji" . "custom_id" (print "addMessageReactions " $worshipped_message.ID " " $emoji) "style" (index . "style")) }}
+{{ end }}
+{{ $message := complexMessage "content" (print "Worship emoji panel (auto-removal <t:" (currentTime.Add (toDuration "60s")).Unix ":R>)") "buttons" $buttons "menus" (cmenu
+  "type" "text"
+  "placeholder" "Choose another God who has given grace"
+  "custom_id" "addMessageReactions"
+  "options" $menu_options) "reply" $worshipped_message.ID }}
+{{ $panel_id := sendMessageRetID nil $message }}
+{{ deleteMessage nil $panel_id 60 }}
+{{ else }}
+{{ dbSet .Channel.ID "command target" (toString .Message.ID) }}
+{{ end }}

@@ -1,0 +1,4 @@
+{{ execAdmin "timeout" $.User.ID "1d" "Sent a message in <#1147870479739269333>" }}
+Nice! {{ $.User.Mention }} has earned a free 1-day mute by sending a message in <#1147870479739269333> until a <@&1181614482443743232> looks at it.
+
+# DO NOT SEND MESSAGES IN THIS CHANNEL

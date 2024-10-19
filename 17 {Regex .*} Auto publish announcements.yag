@@ -1,0 +1,7 @@
+{{ if eq .Channel.Type 5 }}{{/* GUILD_ANNOUNCEMENT */}}
+{{ try }}
+{{ publishMessage .Channel.ID .Message.ID }}
+{{ catch }}
+{{ sendMessage 880890697752915999 (print "Error sending " $.Message.Link "\n" .) }}
+{{ end }}
+{{ end }}

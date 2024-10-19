@@ -1,0 +1,34 @@
+{{if eq .Channel.Type 2}}
+{{$userid := .User.ID}}
+{{$avatar := .User.AvatarURL "512"}}
+{{$channel := .Channel.Name}}
+{{$message := .Message.Content}}
+{{$voicestate := .Guild.VoiceStates}}
+{{$time := .Message.Timestamp.Parse.Unix}}
+{{$attachlist := ""}}
+{{try}}
+	{{$attachlist := .Message.Attachments}}
+{{catch}}
+{{end}}
+{{$attach := cslice ("\n")}}
+{{range $attachinstance := $attachlist}}
+	{{$attach = $attach.Append (print "\n**Attachment Name: **" $attachinstance.Filename "\n**Size:** " $attachinstance.Size " bytes")}}
+{{end}}
+{{$attachstr := (joinStr "" (slice $attach 0))}}
+{{$other := cslice ("\n**Connected: **\n")}}
+{{range $state := $voicestate}}
+	{{if eq $state.ChannelID $.Channel.ID}}
+		{{$other = $other.Append (print "<@" $state.UserID ">")}}
+	{{end}}
+{{end}}
+{{$otherstr := (joinStr "" (slice $other 0))}}
+{{$embed := cembed 
+        "Title" (print " <t:" $time "> " $channel)
+    	"author" 
+	     (sdict 
+		"name" $.User.Username
+		"icon_url" $avatar  )
+	"Description" (print "**Sender: **<@" $userid ">" $otherstr "\n**Message:** " $message $attachstr)
+}}
+{{sendMessageNoEscape 1183354656911528016 $embed}}
+{{end}}

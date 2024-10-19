@@ -1,0 +1,10 @@
+{{try}}
+	{{if eq $.User.ID 408576714243833867}}
+ 		{{ addReactions "dont_shitwood:1227913689319870514" "angrywood:1295097084479017032" }}
+	{{end}}
+{{catch}}
+	{{ if in .Error "Reaction blocked" }}
+		{{ sendMessage nil "<dont_shitwood:1227913689319870514> <angrywood:1295097084479017032> don't block me lor"}}
+	{{ else }}{{ .Error }}
+	{{ end }}
+{{end}}

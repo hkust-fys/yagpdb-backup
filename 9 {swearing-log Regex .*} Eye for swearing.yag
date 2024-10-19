@@ -1,0 +1,13 @@
+{{ if and (eq (len ($embeds := (getMessage .Channel.ID .Message.ID).Embeds)) 1) (eq ($embed := index $embeds 0).Type "auto_moderation_message") }}
+{{ $channel := (index $embed.Fields 1).Value }}
+{{ $message := (index $embed.Fields 5).Value }}
+{{ try }}
+    {{ addMessageReactions $channel $message "👁️" }}
+{{ catch }}
+    {{ if in .Error "Reaction blocked" }}
+        {{ sendMessage $channel (complexMessage "content" "Swearing is bad but blocking me to avoid the eye is worse 👁️👁️👁️" "reply" $message) }}
+    {{ else }}
+        {{ .Error }}
+    {{ end }}
+{{ end }}
+{{ end }}

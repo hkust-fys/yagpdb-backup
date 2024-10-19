@@ -1,0 +1,82 @@
+{{ $channel := 880309982426431499 }}{{/* #lc-meetup */}}
+{{ $area_name := "LC Study Rooms" }}{{ $area_code := 8 }}{{ $room := "LC-17" }}{{ $alternatives := "LC-15 > LC-16 > LC-14" }}
+{{ $two_quota_per_week := cslice ($bill := "<@411537811364380672>") ($supercat := "<@644365420521848834>") ($yc25 := "<@764505045755494411>") ($hanb := "<@1154332278093258802>") ($idontknow := "<@429304001222410250>") ($kirb := "<@197656689242013696>") ($kik := "<@511837482724098048>") ($shark := "<@435807610134986752>") ($leo := "<@1272944699803697183>") ($slime := "<@688086090770415636>") ($dav := "<@752746566925942826>") ($sightseer := "<@691692386828681274>") ($wmfong := "<@589829948995403787>") ($jeje := "<@345100573558833152>") ($luna := "<@921747919051292692>") ($ming := "<@548510403685122070>") ($happypig := "<@434214131122438144>") }}
+{{ $one_quota_per_week := cslice ($chtmax := "<@893847280917020683>") ($htgod := "<@408576714243833867>") ($raydio := "<@686579538209144833>") ($taboono := "<@364420797001105419>") }}
+{{/*
+    Mon Tue Wed Thu Fri
+---+-------------------
+12 |  1   1   2   2   3
+14 |  3   4   4   5   5
+16 |  6   6   7   7   8
+18 |  8   9   9  10  10
+20 | 11  11  12  12  13
+22 | 13  14  14  15  15
+20:00 slots are usually safer for slow-responding people!
+*/}}
+{{ $schedule := sdict
+    "Sunday" (dict)
+    "Monday" (dict 10.5 $luna 12. $supercat 14. $wmfong 16. $hanb 18. $jeje 20. $htgod 22. $leo)
+    "Tuesday" (dict 10.5 $raydio 12. $supercat 14. $sightseer 16. $hanb 18. $jeje 20. $wmfong 22. $slime)
+    "Wednesday" (dict 10.5 $luna 12. $bill 14. $kirb 16. $yc25 18. $idontknow 20. $chtmax 22. $slime)
+    "Thursday" (dict 10.5 $taboono 12. $bill 14. $sightseer 16. $yc25 18. $shark 20. $happypig 22. $dav)
+    "Friday" (dict 10.5 $ming 12. $kirb 14. $dav 16. $idontknow 18. $shark 20. $happypig 22. $leo)
+    "Saturday" (dict) }}
+
+{{/* Don't touch the code starting below if you don't know what they really do! */}}
+{{ define "format" }}{{ $hour := roundFloor . }}{{ if lt $hour 10. }}{{ $hour = print "0" $hour }}{{ else if eq $hour 24. }}{{ $hour = "00" }}{{ end }}{{ $minute := mult (mod . 1) 60 }}{{ if lt $minute 10. }}{{ $minute = print "0" $minute }}{{ end }}{{ return print $hour ":" $minute }}{{ end }}
+{{ if .ExecData }}
+{{ $book := (currentTime.In (loadLocation "Asia/Hong_Kong")).Add (toDuration "2w1m") }}
+{{ $who := index ($schedule_today := index $schedule (toString $book.Weekday)) ($book_start := add (mult 0.5 (div $book.Minute 30)) $book.Hour) }}{{/* (div $book.Minute 30) is integer division so it must either result in 0 (:00-:29) or 1 (:30-:59). Convert it to floating-point by placing 0.5 as first argument to mult, the other order would result in integer multiplication cuting off fractional part. */}}
+{{ if $who }}
+{{ $book_end := $book_start }}
+{{ $book_periods := cslice }}
+{{ while and (lt $book_end 24.) (lt $book_end (add $book_start 2)) (or (eq $book_start $book_end) (not ($schedule_today.HasKey $book_end))) }}{{ $book_periods = $book_periods.Append (execTemplate "format" $book_end) }}{{ $book_end = add $book_end 0.5 }}{{ end }}
+{{ $who }} book {{ $book.Format "January 2006 2" }} {{ execTemplate "format" $book_start }}-{{ execTemplate "format" $book_end }} {{ $room }} ([Change display name here if needed](https://myaccount.ust.hk/connect/displayname))
+1. Open USThing (not library website), click "Booking", "Library", "{{ $area_name }}", "Today"
+2. If "{{ $book.Format "January 2006" }}" is not displayed then click ">". Click "{{ $book.Day }}", "OK"
+3. Scroll down to click "{{ $room }}", "{{ joinStr "\", \"" $book_periods }}", "Confirm", "OK"
+4. (Optional) Check https://lbbooking.hkust.edu.hk/calendar/day.php?{{ $book.Format "year=2006&month=1&day=2" }}&area={{ $area_code }}
+Alternatively starting <t:{{ (currentTime.Add (toDuration (print (mult (sub $book_end $book_start) 60) "m20s"))).Unix }}:R>, you can click the link above, drag-select the timeslot, then press "Save" too. (Your real name will be displayed instead of your display name using this method) Using USThing which checks booking starting time within 2 weeks, lets you book earlier than library website which checks booking ending time within 2 weeks.
+
+If you cannot book, take the first room available in this sequence: {{ $alternatives }}
+{{ end }}
+{{ else }}
+{{ $errors := "" }}
+{{ $expected_quota := sdict }}
+{{ range $two_quota_per_week }}{{ if $expected_quota.HasKey . }}{{ $errors = print $errors "\n- Duplicate entry: " . }}{{ end }}{{ $expected_quota.Set . 2 }}{{ end }}
+{{ range $one_quota_per_week }}{{ if $expected_quota.HasKey . }}{{ $errors = print $errors "\n- Duplicate entry: " . }}{{ end }}{{ $expected_quota.Set . 1 }}{{ end }}
+{{ $actual_quota := sdict }}
+{{ $embeds := cslice }}
+{{ range $day := cslice "Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday" }}
+	{{ $embed_description := "" }}
+    {{ $actual_quota_today := sdict }}
+    {{ range 47 }}
+    	{{ if $who := index (index $schedule $day) ($hour := fdiv . 2) }}
+          {{ $embed_description = print $embed_description "\n" (execTemplate "format" $hour) " " $who }}
+          {{ if $prev_hour := $actual_quota_today.Get $who }}{{ $errors = print $errors "\n- More than one booking on " $day " (" (execTemplate "format" $prev_hour) ", " (execTemplate "format" $hour) "): " $who }}{{ end }}
+          {{ $actual_quota_today.Set $who $hour }}
+          {{ $actual_quota.Set $who (add ($actual_quota.Get $who) 1) }}
+          {{ (index $schedule $day).Del $hour }}
+        {{ end }}
+	{{ end }}
+    {{ range $key, $who := index $schedule $day }}
+    	{{ try }}
+        {{ if and (ge $key 0.) (lt $key 24.) }}
+    	{{ $errors = print $errors "\n- Unused non-half-multiple hour (" $key ") on " $day ": " $who }}
+        {{ else }}
+    	{{ $errors = print $errors "\n- Unused out-of-range hour (" $key ") on " $day ": " $who }}
+        {{ end }}
+        {{ catch }}
+    	{{ $errors = print $errors "\n- Unused non-floating-point hour (" $key ") on " $day ": " $who }}
+        {{ end }}
+    {{ end }}
+	{{ if eq $day (toString (currentTime.In (loadLocation "Asia/Hong_Kong")).Weekday) }}{{ $embeds = $embeds.Append (cembed "title" $day "description" $embed_description "color" 0xffff00) }}{{ else }}{{ $embeds = $embeds.Append (cembed "title" $day "description" $embed_description) }}{{ end }}
+{{ end }}
+{{ range $who, $actual_used := $actual_quota }}{{ if gt $actual_used ($expected_used := index $expected_quota $who) }}{{ $errors = print $errors "\n- Used " $actual_used " bookings per week when only " $expected_used " allowed: " $who }}{{ end }}{{ end }}
+{{ sendMessage nil (complexMessage "content" (print "Booking reminders scheduled for <#" $channel ">\n" $area_name ", " $room) "embed" $embeds) }}
+{{ if $errors }}{{ sendMessage nil (cembed "title" "🚨ISSUES FOUND🚨" "description" $errors "color" 0xff0000) }}{{ end }}
+{{ end }}
+{{ $nextRun := newDate currentTime.Year currentTime.Month currentTime.Day currentTime.Hour 29 40 }}
+{{ if ge currentTime.Minute 29 }}{{ $nextRun = $nextRun.Add (toDuration "30m") }}{{ end }}
+{{ if ge currentTime.Minute 59 }}{{ $nextRun = $nextRun.Add (toDuration "30m") }}{{ end }}
+{{ scheduleUniqueCC .CCID $channel ($nextRun.Sub currentTime).Seconds "booking-reminder" "dummy-data" }}

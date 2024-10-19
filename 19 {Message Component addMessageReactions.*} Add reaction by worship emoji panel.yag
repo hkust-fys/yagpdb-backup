@@ -1,0 +1,22 @@
+{{ if .ExecData }}{{/* Scheduled removal of reaction */}}
+{{ $split := reSplit " " .ExecData }}
+{{ deleteMessageReaction nil (index $split 1) .BotUser.ID (index $split 2) }}
+{{ else }}
+{{ $values := .Values }}{{/* Menu selection */}}
+{{ if not $values }}{{ $values = cslice .CustomID }}{{ end }}{{/* Button selection */}}
+{{ range $values }}
+{{ $split := reSplit " " . }}
+{{ $emoji := index $split 2 }}{{ if or (hasPrefix $emoji ":") (hasPrefix $emoji "a") }}{{ $emoji = print "<" $emoji ">" }}{{ end }}
+{{ try }}
+{{ addMessageReactions nil (index $split 1) (index $split 2) }}
+{{ deleteInteractionResponse nil (sendResponseRetID nil (complexMessage "content" (print "Added " $emoji " for 60 seconds. Remember to click it to retain it!") "ephemeral" true)) 5 }}
+{{ scheduleUniqueCC $.CCID nil 60 . . }}{{/* Remove reaction after 60 seconds and override any previous scheduled removals for this message and this emoji */}}
+{{ catch }}
+    {{ if in .Error "Reaction blocked" }}
+{{ deleteInteractionResponse nil (sendResponseRetID nil (complexMessage "content" (print "Could not add " $emoji " because " (getMessage nil (index $split 1)).Author.Mention " blocked me 😔") "ephemeral" true)) 5 }}
+    {{ else }}
+        {{ .Error }}
+    {{ end }}
+{{ end }}
+{{ end }}
+{{ end }}

@@ -1,0 +1,19 @@
+{{/*
+Change #✔please-self-intro too if the following is changed (go to #🤖🆔bots-test管理員測試頻道 without ✅ role and test first for pasting to these places): https://carl.gg/dashboard/880301598981648416/embeds (embed to edit is https://discord.com/channels/880301598981648416/880985483293892628/1182956108843855953)
+ */}}
+{{ $input := lower (sanitizeText $.Message.Content) }}
+{{ $error := "" }}
+{{ if in $input "name" | not }}{{ $error = println $error "Missing word: \"name\". Please tell us your preferred name!" }}{{ end }}
+{{ if or (in $input "aim") (in $input "major") | not }}{{ $error = println $error "Missing word: \"aim\" or \"major\". Please tell us your aimed major, enrolled major or graduated major! Don't just write \"none\" or \"undeclared\", tell us your aimed major(s) instead!" }}{{ end }}
+{{ if or (in $input "hobby") (in $input "hobbies") | not }}{{ $error = println $error "Missing word: \"hobby\" or \"hobbies\". Please tell us your hobbies!" }}{{ end }}
+{{ if eq $error "" }}
+    {{ $embed := cembed
+	"Title" "Self-introduced!"
+	"Description" "Congratulations, you got it!\nVisit <#880301599665295414> or <#880301599665295415> and greet everyone!" }}
+    {{ addRoleID 880591878720978964 }}
+    {{ $threadname := print .User.Globalname " (" .User.Username ")" }}
+    {{ $thread := createThread nil $.Message.ID $threadname }}
+    {{ sendMessageNoEscape $thread.ID $embed }}
+{{ else }}
+    {{ sendMessage nil (complexMessage "content" (print $.User.Mention "\n" $error) "reply" $.Message.ID) }}
+{{ end }}
