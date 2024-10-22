@@ -15,9 +15,9 @@
 */}}
 {{ $schedule := sdict
     "Sunday" (dict)
-    "Monday" (dict 10.5 $luna 12. $supercat 14. $wmfong 16. $hanb 18. $jeje 20. $htgod 22. $leo)
+    "Monday" (dict 10.5 $luna 12. $supercat 14. $wmfong 16. $hanb 18. $jeje 20. $kirb 22. $leo)
     "Tuesday" (dict 10.5 $raydio 12. $supercat 14. $sightseer 16. $hanb 18. $jeje 20. $wmfong 22. $slime)
-    "Wednesday" (dict 10.5 $luna 12. $bill 14. $kirb 16. $yc25 18. $idontknow 20. $chtmax 22. $slime)
+    "Wednesday" (dict 10.5 $luna 12. $bill 14. $htgod 16. $yc25 18. $idontknow 20. $chtmax 22. $slime)
     "Thursday" (dict 10.5 $taboono 12. $bill 14. $sightseer 16. $yc25 18. $shark 20. $happypig 22. $dav)
     "Friday" (dict 10.5 $ming 12. $kirb 14. $dav 16. $idontknow 18. $shark 20. $happypig 22. $leo)
     "Saturday" (dict) }}
@@ -31,7 +31,7 @@
 {{ $book_end := $book_start }}
 {{ $book_periods := cslice }}
 {{ while and (lt $book_end 24.) (lt $book_end (add $book_start 2)) (or (eq $book_start $book_end) (not ($schedule_today.HasKey $book_end))) }}{{ $book_periods = $book_periods.Append (execTemplate "format" $book_end) }}{{ $book_end = add $book_end 0.5 }}{{ end }}
-{{ $who }} book {{ $book.Format "January 2006 2" }} {{ execTemplate "format" $book_start }}-{{ execTemplate "format" $book_end }} {{ $room }} ([Change display name here if needed](https://myaccount.ust.hk/connect/displayname))
+{{ $who }} book {{ $book.Format "2006-01-02" }} {{ execTemplate "format" $book_start }}-{{ execTemplate "format" $book_end }} {{ $room }} ([Change display name here if needed](https://myaccount.ust.hk/connect/displayname))
 1. Open USThing (not library website), click "Booking", "Library", "{{ $area_name }}", "Today"
 2. If "{{ $book.Format "January 2006" }}" is not displayed then click ">". Click "{{ $book.Day }}", "OK"
 3. Scroll down to click "{{ $room }}", "{{ joinStr "\", \"" $book_periods }}", "Confirm", "OK"
