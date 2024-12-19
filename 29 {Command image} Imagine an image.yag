@@ -1,0 +1,2 @@
+{{ sleep 8 }}{{/* after NotSoBot */}}
+{{ randInt 0 10000 | printf "https://image.pollinations.ai/prompt/%s.jpg?seed=%d" (joinStr " " .CmdArgs | urlquery) | complexMessage "reply" $.Message.ID "content" | sendMessage nil}}

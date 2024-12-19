@@ -1,0 +1,216 @@
+{{$worshipForum := 1299784029129674773}}
+{{$worshipPinForum := 1206202558448668712}}
+
+{{$execData := .ExecData}}
+{{if not $execData}}{{$execData = cslice (str $.Message.ChannelID) (str $.Message.ID) (str $.Message.Author.ID) nil nil sdict sdict}}{{end}}
+{{$cID := index $execData 0}}{{/*channel ID*/}}
+{{$mID := index $execData 1}}{{/*message ID*/}}
+{{$aID := index $execData 2}}{{/*author ID*/}}
+{{$dbIndex := index $execData 3}}
+{{$displayCount := index $execData 4}}
+{{$remainingGods := index $execData 5}}
+{{$remainingPosts := index $execData 6}}
+{{$emojis := (dbGet 0 "worshipEmojis").Value}}
+{{$m := 0}}{{/*message*/}}
+{{$boardPosts := 0}}
+
+{{if .ExecData}}
+{{$m = getMessage $cID $mID}}
+{{$boardPosts = (dbGet $dbIndex "worshipBoardPosts").Value}}
+{{else}}
+{{$reactIsWorship := false}}
+{{range $v, $k := $emojis}}{{range slice $k 2}}{{if eq (index . 1) $.Reaction.Emoji.Name}}{{$reactIsWorship = true}}{{end}}{{end}}{{end}}
+{{if not $reactIsWorship}}{{return}}{{end}}
+
+{{$record := printf "[%d]%d" $.Reaction.Emoji.ID $.User.ID}}
+{{if and (eq $.Message.Author.ID $.BotUser.ID) (in (cslice $worshipForum $worshipPinForum) $.Channel.ParentID)}}
+	{{$record = printf "[%d|%d]%d" $.Channel.ID $.Reaction.Emoji.ID $.User.ID}}
+	{{range reFindAllSubmatches `https://discord.com/channels/\d+/(\d+)/(\d+)` $.Message.Content 1}}
+		{{$cID = index . 1}}{{$mID = index . 2}}
+	{{end}}
+	{{range $.Message.Embeds}}
+		{{if not .Footer}}
+			{{range reFindAllSubmatches `https://discord.com/users/(\d+)` .Author.URL 1}}{{$aID = index . 1}}{{else}}{{$aID = "0"}}{{end}}
+			{{break}}
+		{{end}}
+	{{end}}
+{{end}}
+{{$dbIndex = div $mID 1000000000000000000}}
+
+{{$worships := (dbGet $dbIndex "worships").Value}}
+{{if not $worships}}{{$worships = sdict $mID (cslice "")}}{{end}}
+{{$remainingGodsRecords := cslice}}
+{{with index $worships $mID}}
+	{{if $.ReactionAdded}}{{$record = print (index . 0) $record}}{{else}}{{$record = reReplace (reQuoteMeta $record) (index . 0) ""}}{{end}}
+	{{if gt (len .) 1}}{{$remainingGodsRecords = slice . 1}}{{end}}
+{{end}}
+{{$worships.Set $mID ((cslice $record).AppendSlice $remainingGodsRecords)}}
+{{dbSet $dbIndex "worships" $worships}}
+
+{{$worshippers := sdict}}
+{{range reFindAllSubmatches `](\d+)` $record}}{{$worshippers.Set (index . 1) true}}{{end}}
+{{$displayCount = len $worshippers}}
+
+{{$m = getMessage $cID $mID}}
+{{$boardPosts = (dbGet $dbIndex "worshipBoardPosts").Value}}
+{{if not $boardPosts}}{{$boardPosts = sdict}}{{end}}
+{{if gt (len $remainingGodsRecords) 0}}
+	{{range $remainingGodsRecords}}{{$remainingGods.Set . true}}{{end}}
+{{else}}
+	{{range $board, $ms := $boardPosts}}
+		{{if $m := $ms.Get $mID}}
+			{{$remainingPosts.Set $board $m}}
+			{{template "getGods" cslice (getMessage $board $m) $aID $emojis $remainingGods}}
+		{{end}}
+	{{end}}
+	{{template "getGods" cslice $m $aID $emojis $remainingGods}}
+{{end}}
+{{end}}
+
+{{$boards := (dbGet 0 "worshipBoards").Value}}
+{{if not $boards}}{{$boards = sdict}}{{end}}
+{{try}}
+{{range $god, $_ := $remainingGods}}
+	{{$godmojis := $emojis.Get $god}}
+	{{if not $godmojis}}{{$godmojis = $emojis.Get "0"}}{{end}}
+	{{$emoji := 0}}
+	{{range slice $godmojis 2}}{{if le (index . 0) $displayCount}}{{$emoji = .}}{{end}}{{end}}
+	{{if $emoji}}
+		{{$relevantBoards := $boards.Get $god}}
+		{{$name := (userArg $god).Username}}
+		{{if and (not $name) $m.WebhookID}}{{if eq $m.WebhookID $god}}{{$god = "0"}}{{$name = "Webhook"}}{{end}}{{end}}
+		{{if not $name}}{{$name = "Non-member"}}{{end}}
+		{{with index $godmojis 0}}{{$name = printf "%s (%s)" $name .}}{{end}}
+		{{range $i, $board := $relevantBoards}}
+			{{with getThread $board}}
+				{{if ne $name .Name}}{{editChannelName .ID $name}}{{end}}
+			{{else}}
+				{{$forum := $worshipForum}}{{if eq $i 1}}{{$forum = $worshipPinForum}}{{end}}
+				{{$relevantBoards.Set $i ($newBoard := str (createForumPost $worshipForum $name "Worship").ID)}}
+				{{$boardPosts.Del $board}}
+				{{$boardPosts.Set $newBoard sdict}}
+			{{end}}
+		{{else}}
+			{{$boards.Set $god ($relevantBoards = cslice ($newBoard := str (createForumPost $worshipForum $name "Worship").ID))}}
+			{{$boardPosts.Set $newBoard sdict}}
+		{{end}}
+		{{$newM := sdict
+			"content" (printf "%s **%d |** https://discord.com/channels/%d/%s/%s" (cslice $emoji false | execTemplate "emojiString") $displayCount $.Guild.ID $cID $mID)
+			"embed" (cslice $m false cslice 0 | execTemplate "constructEmbeds" | execTemplate "capEmbeds")
+			"buttons" (cslice
+				(cbutton "emoji" (sdict "name" "🚚") "label" "Move" "custom_id" (printf "worshipMove %s %s" $cID $mID))
+				(cbutton "emoji" (sdict "name" "🛕") "label" "Shrine" "custom_id" (printf "worshipShrine %s %s" $cID $mID) "style" "danger")
+		)}}
+		{{$edited := false}}
+		{{range $relevantBoards}}{{if $oldM := index $boardPosts . $mID}}
+			{{if $oldM := getMessage . $oldM}}
+				{{range $newM.Get "embeds"}}{{.Del "author"}}{{/*Preserve old names and avatars*/}}{{end}}
+				{{$edit := $newM}}
+				{{if lt ($newAnchor := $newM.Get "embed" | execTemplate "getAnchor") ($oldAnchor := execTemplate "getAnchor" $oldM.Embeds)}}
+					{{/*Keep deleted messages in reply chains*/}}
+					{{$edit = sdict}}{{range $k, $v := $newM}}{{$edit.Set $k $v}}{{end}}
+					{{(slice $oldM.Embeds 0 (sub $oldAnchor $newAnchor)).AppendSlice ($edit.Get "embed") | execTemplate "capEmbeds" | $edit.Set "embed"}}
+				{{end}}
+				{{editMessage . $oldM.ID (complexMessageEdit $edit)}}
+				{{$edited = true}}
+				{{$remainingPosts.Del .}}
+			{{else}}{{(index $boardPosts .).Del $mID}}
+			{{end}}
+		{{end}}{{end}}
+		{{if not $edited}}
+			{{$newMID := sendMessageRetID ($relatedBoard := index $relevantBoards 0) (complexMessage $newM)}}
+			{{$defaultEmoji := index $godmojis 1}}
+			{{range slice $godmojis 2}}{{if index . 1 | eq $defaultEmoji}}
+				{{cslice . true | execTemplate "emojiString" | addMessageReactions $relatedBoard $newMID}}
+			{{end}}{{end}}
+			{{($boardPosts.Get $relatedBoard).Set $mID (str $newMID)}}
+		{{end}}
+	{{end}}
+{{end}}
+{{range $board, $oldM := $remainingPosts}}
+	{{deleteMessage $board $oldM 0}}
+	{{$remainingPosts.Del $board}}
+	{{($boardPosts.Get $board).Del $mID}}
+{{end}}
+{{catch}}
+	{{if hasPrefix .Error "too many"}}{{/*≥1 createForumPost / ≥10 editChannelName / ≥100 generic API calls per cc*/}}
+		{{dbSet 0 "worshipBoards" $boards}}
+		{{dbSet $dbIndex "worshipBoardPosts" $boardPosts}}
+		{{execCC $.CCID nil 1 (cslice $cID $mID $aID $dbIndex $displayCount $remainingGods $remainingPosts)}}
+		{{return}}
+	{{else}}{{print "Error: " . "\n" $.Message.Link | sendMessage 880890697752915999}}
+	{{end}}
+{{end}}
+{{dbSet 0 "worshipBoards" $boards}}
+{{dbSet $dbIndex "worshipBoardPosts" $boardPosts}}
+
+{{define "getAnchor"}}
+	{{range $i, $embed := $}}
+		{{if not $embed.Footer}}{{return $i}}{{end}}
+	{{end}}{{/*Expect we find embed for original message without Footer*/}}
+{{end}}
+{{define "capEmbeds"}}
+	{{if lt 10 (len $)}}
+		{{return (slice $ 0 9).Append (sdict "description" "This message has too many embeds. Go to the original message to see all content.")}}
+	{{else}}{{return $}}
+	{{end}}
+{{end}}
+{{define "getGods"}}{{with index $ 0}}
+	{{$reactions := cslice}}
+	{{range .Reactions}}{{$reactions = $reactions.Append .Emoji.Name}}{{end}}
+	{{$content := lower .Content}}
+	{{range $god, $godmojis := index $ 2}}
+		{{if eq $god "0"}}{{$god = index $ 1}}{{end}}
+		{{range cslice " " "\n"}}{{if or (index $godmojis 0 | print . | lower | in $content) (. | print (index $godmojis 0) | lower | in $content)}}
+			{{(index $ 3).Set $god true}}
+		{{end}}{{end}}
+		{{range slice $godmojis 2}}
+			{{if or (in $content (index . 1)) (in $reactions (index . 1))}}
+				{{(index $ 3).Set $god true}}
+			{{end}}
+		{{end}}
+	{{end}}
+{{end}}{{end}}
+{{define "constructEmbeds"}}{{$isReply := index . 1}}{{$embeds := index . 2}}{{if $m := index . 0}}
+	{{with and (lt (index . 3) 8) $m.ReferencedMessage}}{{$embeds = execTemplate "constructEmbeds" (cslice . true $embeds (add (index $ 3) 1))}}{{end}}
+	{{$author := $m.Author.Username}}{{$avatar := $m.Author.AvatarURL "1024"}}
+	{{with $m.Author.Globalname}}{{$author = .}}{{end}}
+	{{with getMember $m.Author.ID}}
+		{{with .Nick}}{{$author = .}}{{end}}
+		{{$avatar = .AvatarURL "1024"}}
+	{{end}}
+	{{if $isReply}}{{$author = print "Replying to " $author}}{{end}}
+	{{$embeds = $embeds.Append ($embed := sdict
+		"author" (sdict "name" $author "icon_url" $avatar)
+		"description" $m.Content
+		"timestamp" $m.Timestamp
+	)}}
+	{{if not $m.WebhookID}}{{(index $embed "author").Set "url" (print "https://discord.com/users/" $m.Author.ID)}}{{end}}
+	{{if $isReply}}{{$embed.Set "footer" "Replied message"}}{{else}}{{$embed.Set "color" 0x9266CC}}{{end}}
+	{{range $m.Embeds}}
+		{{if and (eq .Type "image") (not (in "image" $embeds))}}{{$embed.Set "image" (sdict "url" .URL)}}
+		{{else if not $isReply}}{{$embeds = $embeds.Append .}}
+		{{end}}
+	{{end}}
+	{{$attachments := ""}}
+	{{range $m.Attachments}}
+		{{$isImage := or (hasSuffix ($file := lower .Filename) ".gif") (hasSuffix $file ".png") (hasSuffix $file ".webp") (hasSuffix $file ".jpg") (hasSuffix $file ".jpeg")}}
+		{{if not (in "image" $embed) | and $isImage}}
+			{{$embed.Set "image" (sdict "url" .URL)}}
+		{{else if gt 10 (len $embeds) | and $isImage (not $isReply)}}
+			{{$embeds = $embeds.Append (sdict "image" (sdict "url" .URL))}}
+		{{else}}
+			{{$attachments = printf "%s\n[%s (%d bytes)](%s)" $attachments .Filename .Size .URL}}
+		{{end}}
+	{{end}}
+	{{if $attachments}}{{$embed.Set "fields" (cslice (sdict "name" "Attachments" "value" $attachments))}}{{end}}
+{{end}}{{return $embeds}}{{end}}
+{{define "emojiString"}}
+	{{if index . 0 2}}
+		{{$ := ""}}
+		{{if index . 0 3}}{{$ = "a"}}{{end}}
+		{{$ = printf "%s:%s:%s" $ (index . 0 1) (index . 0 2)}}
+		{{if index . 1}}{{return $}}{{else}}{{return printf "<%s>" $}}{{end}}
+	{{else}}{{return index . 0 1}}
+	{{end}}
+{{end}}

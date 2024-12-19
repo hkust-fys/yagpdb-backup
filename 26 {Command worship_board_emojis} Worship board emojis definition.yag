@@ -1,0 +1,69 @@
+{{dbSet 0 "worshipEmojis" (sdict
+	"0" (cslice "" "🛐"
+		(cslice  3 "can_worship" "1225705955208073257" false)
+		(cslice  6 "🛐" "" false)
+		(cslice  9 "in_ust_we_trust" "1094281397629370538" true)
+		(cslice 12 "worship2" "1150301284314914916" true)
+		(cslice 15 "in_ust_we_worship" "1230012312375787592" true)
+		(cslice 18 "in_ust_we_worship_AaronWang" "1178721372361461790" true)
+		(cslice 21 "flashing_worship" "1240668367438741585" true)
+	) "461884240456450088" (cslice "E God" "worship_e"
+		(cslice  3 "worship_e" "1186715166025449554" false)
+		(cslice  5 "worship_e1" "1186715253552197674" false)
+		(cslice  7 "worship_e_3d" "1255464939015901255" false)
+		(cslice  9 "aworship_e" "1230012312375787592" true)
+		(cslice 11 "aworship_e_quick" "1231204206346502225" true)
+		(cslice 13 "wobbleworship_e" "1231204493354467378" true)
+		(cslice 15 "extremeworship_e" "1240675771958165616" true)
+		(cslice 20 "worship_e1_3d" "1289865796851597454" true)
+	) "282350514015043587" (cslice "Q God" "worship_q"
+		(cslice  3 "worship_q" "1228299782574051389" false)
+		(cslice  7 "worship_q2" "1228311753692151920" false)
+		(cslice 12 "qwood" "1285509523846463518" false)
+		(cslice 18 "aworship_q_3d" "1295839682801963069" true)
+	) "408576714243833867" (cslice "HTGod" "worship_ht"
+		(cslice  3 "can_worship_ht" "1291764571291254794" false)
+		(cslice  7 "worship_ht" "1289982688786251776" false)
+		(cslice 15 "in_ht_god_we_trust" "1297221164501962843" true)
+	) "539402255221129226" (cslice "LK God" "worship_lk"
+		(cslice  3 "worship_lk" "1229986619428438107" false)
+	) "450369255700037632" (cslice "Cubic God" "worship_cubic"
+		(cslice  3 "worship_3tothepowern" "1250749261654524006" false)
+		(cslice  7 "worship_cubic" "1300288181777993809" true)
+	) "404294008395792384" (cslice "HU God" "worship_hu"
+		(cslice  3 "worship_hu" "1229337904870850570" false)
+	) "787886146029617173" (cslice "D God" "worship_d"
+		(cslice  3 "worship_d" "1238818937408327751" false)
+		(cslice 10 "tgodspellcast" "1287039630289666208" false)
+	) "220787858842189824" (cslice "N God" "worship_n"
+		(cslice  3 "worship_n" "1229831928182476861" false)
+	) "389596491511234562" (cslice "V God" "worship_v"
+		(cslice  3 "worship_v" "1259697484901519521" false)
+	) "764505045755494411" (cslice "Y God" "worship_yc"
+		(cslice  3 "worship_yc" "1300110018439413811" false)
+	) "740570613655011328" (cslice "FF" "iloveff"
+		(cslice  3 "FFklavier" "1077095328492290109" false)
+		(cslice 10 "iloveff" "1081499240532037752" false)
+	) "1293145289632514068" (cslice "" "worship_151044"
+		(cslice  3 "worship_151044" "1293145289632514068" false)
+	) "376343682644836353" (cslice "" "worship_3_n"
+		(cslice  3 "worship_3_n" "1243142334703730790" false)
+		(cslice  7 "worship_3_n_3d" "1255120724650233947" false)
+		(cslice 15 "worship_3_n_3d" "1262678930385797140" true)
+	) "525680975527804929" (cslice "" "worship_c"
+		(cslice  3 "worship_c" "1246068424887500860" false)
+	) "703975494202425374" (cslice "" "worship_cp"
+		(cslice  3 "worship_cp" "1285328345126535262" false)
+	) "805095752896086028" (cslice "" "worship_R"
+		(cslice  3 "worship_R" "1229821392506327152" false)
+	) "480382584606556190" (cslice "" "worship_a"
+		(cslice  3 "worship_a" "1244269108909047860" false)
+	) "440447307171758081" (cslice "" "worship_2nd_e"
+		(cslice  3 "worship_2nd_e" "1233080184194859118" false)
+	)  "464304333941374987" (cslice "" "aworship_helicopter"
+		(cslice  3 "aworship_helicopter" "1270992772622712873" true)
+	) "982240545797713980" (cslice "" "worship_s"
+		(cslice  3 "worship_s" "1246321448147222548" false)
+		(cslice 10 "worship_s2" "1246322208377143369" false)
+	)
+	)}}

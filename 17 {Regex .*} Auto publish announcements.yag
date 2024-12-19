@@ -1,4 +1,4 @@
-{{ if eq .Channel.Type 5 }}{{/* GUILD_ANNOUNCEMENT */}}
+{{ if and (eq .Channel.Type 5) (eq .Message.Type 0) }}{{/* GUILD_ANNOUNCEMENT and DEFAULT */}}
 {{ try }}
 {{ publishMessage .Channel.ID .Message.ID }}
 {{ catch }}

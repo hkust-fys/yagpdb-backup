@@ -1,0 +1,20 @@
+{{try}}
+	{{$:=lower .Message.Content}}
+	{{if in $ "gay"}}
+		{{addReactions ":gay:1206236672061214771"}}
+		{{$var := randInt 30}}
+		{{if eq $var 1}}{{sendMessage nil "why you asking, you interested?"}}
+		{{else if eq $var 2}}{{sendMessage nil "wherefore thee asking, thee int'rest'd?"}}
+		{{else if eq $var 3}}{{sendMessage nil "?detseretni uoy ,gniksa uoy yhw"}}
+		{{else if eq $var 4}}{{sendMessage nil "nyany youwu asking, yowou intewestewd?"}}
+		{{else if eq $var 5}}{{sendMessage nil "gay"}}
+		{{end}}
+	{{else if in $ "uwu"}}
+		{{addReactions "a:uwu_animated:864051024846127144"}}
+	{{end}}
+{{catch}}
+	{{ if in .Error "Reaction blocked" }}
+		{{ sendMessage nil "Why you blocking me, you interested<:gay:1206236672061214771>?"}}
+	{{ else }}{{ .Error }}
+	{{ end }}
+{{end}}

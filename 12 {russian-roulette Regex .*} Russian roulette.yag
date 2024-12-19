@@ -1,0 +1,12 @@
+{{ $image_path := "https://raw.githubusercontent.com/Happypig375/russian-roulette-bot/refs/heads/main/assets/images/" }}
+{{ if $roulette := (dbGet 0 "russian roulette").Value }}
+{{ if $roulette := getMessage $.Channel.ID $roulette }}
+{{ $frame := randInt 6 | add 1 }}
+{{ $message := print $.User.Mention " pulled the trigger.\n" }}
+{{ $color := 0 }}
+{{ if eq $frame 1 }}{{ $message = print $message "☠ Bang! Muted for 6 hours." }}{{ $color = 0xff0000 }}{{ $_ := execAdmin "timeout" $.User.ID "6h" "Lost the Russian Roulette" }}{{ else }}{{ $message = print $message "✅ *Click*" }}{{ end }}
+{{ print $image_path "frame_" $frame ".png" | sdict "url" | cembed "color" $color "image" | complexMessageEdit "content" $message "embed" | editMessage $.Channel.ID $roulette.ID }}
+{{ end }}
+{{ end }}
+{{ sleep 5 }}
+{{ print $image_path "spin.gif" | sdict "url" | cembed "image" | complexMessage "content" "Send a message to shoot." "embed" | sendMessageRetID nil | str | dbSet 0 "russian roulette" }}

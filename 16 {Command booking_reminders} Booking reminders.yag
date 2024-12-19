@@ -1,7 +1,8 @@
 {{ $channel := 880309982426431499 }}{{/* #lc-meetup */}}
-{{ $area_name := "LC Study Rooms" }}{{ $area_code := 8 }}{{ $room := "LC-17" }}{{ $alternatives := "LC-15 > LC-16 > LC-14" }}
-{{ $two_quota_per_week := cslice ($bill := "<@411537811364380672>") ($supercat := "<@644365420521848834>") ($yc25 := "<@764505045755494411>") ($hanb := "<@1154332278093258802>") ($idontknow := "<@429304001222410250>") ($kirb := "<@197656689242013696>") ($kik := "<@511837482724098048>") ($shark := "<@435807610134986752>") ($leo := "<@1272944699803697183>") ($slime := "<@688086090770415636>") ($dav := "<@752746566925942826>") ($sightseer := "<@691692386828681274>") ($wmfong := "<@589829948995403787>") ($jeje := "<@345100573558833152>") ($luna := "<@921747919051292692>") ($ming := "<@548510403685122070>") ($happypig := "<@434214131122438144>") }}
-{{ $one_quota_per_week := cslice ($chtmax := "<@893847280917020683>") ($htgod := "<@408576714243833867>") ($raydio := "<@686579538209144833>") ($taboono := "<@364420797001105419>") }}
+{{ $area_name := "LC Study Rooms" }}{{ $area_code := 8 }}{{ $room := "LC-17" }}{{ $alternatives := "LC-16 > LC-15 > LC-14" }}
+{{ if and false (lt (currentTime.In (loadLocation "Asia/Hong_Kong")).Hour 22) }}{{ $area_name = "Group Study Rooms" }}{{ $area_code = 3 }}{{ $room = "LG3-17" }}{{ $alternatives = "" }}{{ end }}
+{{ $two_quota_per_week := cslice ($bill := "<@411537811364380672>") ($supercat := "<@644365420521848834>") ($nft_speculator := "<@434359002982514689>") ($hanb := "<@1154332278093258802>") ($idontknow := "<@429304001222410250>") ($kirb := "<@197656689242013696>") ($kik := "<@511837482724098048>") ($leo := "<@1272944699803697183>") ($slime := "<@688086090770415636>") ($dav := "<@752746566925942826>") ($sightseer := "<@691692386828681274>") ($jeje := "<@345100573558833152>") ($luna := "<@921747919051292692>") ($ming := "<@548510403685122070>") ($raydio := "<@686579538209144833>") ($happypig := "<@434214131122438144>") ($apprentice_dev := "<@894539555640868925>") ($dino := "<@450876605787799562>") }}
+{{ $one_quota_per_week := cslice ($chtmax := "<@893847280917020683>") ($taboono := "<@364420797001105419>") }}
 {{/*
     Mon Tue Wed Thu Fri
 ---+-------------------
@@ -15,11 +16,11 @@
 */}}
 {{ $schedule := sdict
     "Sunday" (dict)
-    "Monday" (dict 10.5 $luna 12. $supercat 14. $wmfong 16. $hanb 18. $jeje 20. $kirb 22. $leo)
-    "Tuesday" (dict 10.5 $raydio 12. $supercat 14. $sightseer 16. $hanb 18. $jeje 20. $wmfong 22. $slime)
-    "Wednesday" (dict 10.5 $luna 12. $bill 14. $htgod 16. $yc25 18. $idontknow 20. $chtmax 22. $slime)
-    "Thursday" (dict 10.5 $taboono 12. $bill 14. $sightseer 16. $yc25 18. $shark 20. $happypig 22. $dav)
-    "Friday" (dict 10.5 $ming 12. $kirb 14. $dav 16. $idontknow 18. $shark 20. $happypig 22. $leo)
+    "Monday" (dict 10.5 $luna 12. $supercat 14. $dino 16. $hanb 18. $jeje 20. $kirb 22. $leo)
+    "Tuesday" (dict 10.5 $raydio 12. $supercat 14. $sightseer 16. $hanb 18. $jeje 20. $dino 22. $slime)
+    "Wednesday" (dict 10.5 $luna 12. $bill 14. $apprentice_dev 16. $nft_speculator 18. $idontknow 20. $chtmax 22. $slime)
+    "Thursday" (dict 10.5 $ming 12. $bill 14. $sightseer 16. $nft_speculator 18. $raydio 20. $happypig 22. $dav)
+    "Friday" (dict 10.5 $taboono 12. $kirb 14. $dav 16. $ming 18. $idontknow 20. $leo 22. $happypig)
     "Saturday" (dict) }}
 
 {{/* Don't touch the code starting below if you don't know what they really do! */}}
@@ -38,7 +39,7 @@
 4. (Optional) Check https://lbbooking.hkust.edu.hk/calendar/day.php?{{ $book.Format "year=2006&month=1&day=2" }}&area={{ $area_code }}
 Alternatively starting <t:{{ (currentTime.Add (toDuration (print (mult (sub $book_end $book_start) 60) "m20s"))).Unix }}:R>, you can click the link above, drag-select the timeslot, then press "Save" too. (Your real name will be displayed instead of your display name using this method) Using USThing which checks booking starting time within 2 weeks, lets you book earlier than library website which checks booking ending time within 2 weeks.
 
-If you cannot book, take the first room available in this sequence: {{ $alternatives }}
+{{ if $alternatives }}If you cannot book, take the first room available in this sequence: {{ $alternatives }}{{ end }}
 {{ end }}
 {{ else }}
 {{ $errors := "" }}

@@ -7,20 +7,29 @@
 {{ if $worshipped_message }}{{ $worshipped_message = getMessage .Channel.ID $worshipped_message.Value }}{{ else }}No previous message found. Say something first for worshipping!{{ return }}{{ end }}
 {{ end }}
 {{ deleteMessage .Channel.ID .Message.ID }}
+{{/* Order by people frequently worshipped -> active people -> inactive people (including people who left) */}}
+{{/* Differences between the 2 cslices at the end: first one for standalone words, second one for regex search */}}
 {{ $gods := cslice
   282350514015043587 "Q God" "worship_q" "1228299782574051389" (cslice "ugta" "ctf" "q" "qq") (cslice "quote" "quoty")
-  408576714243833867 "HTGod" "worship_ht" "1289982688786251776" (cslice "ht" "rust") (cslice "htg")
+  408576714243833867 "HTGod" "worship_ht" "1289982688786251776" (cslice "ht" "rust" "github") (cslice "htg")
+  539402255221129226 "LK God" "worship_lk" "1229986619428438107" (cslice "kit" "civl" "civil" "lk") (cslice "longkit" "long kit")
+  679305272195285012 "Smoke God" "worship_smoke" "1315940599274405888" (cslice "msc") (cslice "smoke" "smoking")
+  686579538209144833 "Raydio God" "worship_raydio" "1315656521660502076" (cslice "paper") (cslice "raydio")
+  411537811364380672 "Bill God" "worship_bill" "1316771352199565415" (cslice "hospital" "viola") (cslice "bill")
+  644365420521848834 "Cat God" "worship_cat" "1316008913463808060" (cslice "rich" "qfin") (cslice "iris" "supercat" "super cat")
+  434214131122438144 "Pig God" "worship_pig" "1316008940521390151" (cslice "senator") (cslice "happy pig" "happypig" "hadrian")
+  740098404688068641 "Shift God" "worship_shift" "1317499077272801360" (cslice "genshin" "hill") (cslice "shift")
+  450369255700037632 "Cubic God" "worship_cubic" "1300288181777993809" (cslice "mogu" "mushroom") (cslice "cubic" "cubie")
+  404294008395792384 "HU God" "worship_hu" "1229337904870850570" (cslice "hu") (cslice "hu tao")
+  220787858842189824 "N God" "worship_n" "1229831928182476861" (cslice "cow") (cslice "nuclear")
+  389596491511234562 "V God" "worship_v" "1293145372650111026" (cslice "ice") (cslice "vanadium")
+  764505045755494411 "Y God" "worship_yc" "1300110018439413811" (cslice "yc") (cslice "yat ching")
+  740570613655011328 "FF" "iloveff" "1081499240532037752" (cslice) (cslice "ffklavier")
   480382584606556190 "A God" "worship_a" "1244269108909047860" (cslice "auto") (cslice "tomato")
   525680975527804929 "C God" "worship_c" "1246068424887500860" (cslice) (cslice "charming")
   703975494202425374 "CP God" "worship_cp" "1293145323732078624" (cslice) (cslice "cplam")
-  450369255700037632 "Cubic God" "worship_3tothepowern" "1250749261654524006" (cslice "mogu" "mushroom") (cslice "cubic" "cubie")
   787886146029617173 "D God" "worship_d" "1238818937408327751" (cslice "elec") (cslice "thunder" "dora")
   461884240456450088 "E God" "worship_e" "1186715166025449554" (cslice "isdn" "design" "e") (cslice "evn" "evan")
-  740570613655011328 "FF" "iloveff" "1081499240532037752" (cslice) (cslice "ffklavier")
-  404294008395792384 "HU God" "worship_hu" "1229337904870850570" (cslice "hu") (cslice "hu tao")
-  539402255221129226 "LK God" "worship_LK" "1229986619428438107" (cslice "kit" "civl" "civil" "lk") (cslice "longkit" "long kit")
-  220787858842189824 "N God" "worship_n" "1229831928182476861" (cslice "cow") (cslice "nuclear")
-  389596491511234562 "V God" "worship_v" "1293145372650111026" (cslice "ice") (cslice "vanadium")
   586790522157531136 "1 God" "worship_151044" "1293145289632514068" (cslice) (cslice "151044")
   376343682644836353 "3 God" "worship_3_n" "1243142334703730790" (cslice) (cslice "3_n")
 }}
@@ -74,6 +83,8 @@
   (sdict "name" "dont_shitwood_denied" "id" "1293323142457983067" "animated" false "style" "danger")
   (sdict "name" "dont_shitwood_denied_denied" "id" "1293323205272145971" "animated" false "style" "success")
   (sdict "name" "clownwood" "id" "1232273916781789236" "animated" false "style" "danger")
+  (sdict "name" "pretending" "id" "1300889919031345175" "animated" false "style" "danger")
+  (sdict "name" "stop_pretending" "id" "1300749158600146985" "animated" false "style" "success")
 }}
 	{{ $emoji := "" }}
 	{{ if index . "animated" }}{{ $emoji = "a" }}{{ end }}
