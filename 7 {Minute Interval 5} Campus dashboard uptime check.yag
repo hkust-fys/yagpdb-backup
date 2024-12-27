@@ -1,0 +1,15 @@
+{{ $dashboard_hoster := "<@740098404688068641>" }}
+{{ $dashboard_bot := "<@1286323191505096815>" }}
+{{ $dashboard_channel := 1286317356150296638 }}
+{{ $dashboard_message := 1286342502370119832 }}
+{{ $dashboard_downtime_thread := 1322320688882778174 }}
+{{ if gt ($downtime := currentTime.Sub (getMessage $dashboard_channel $dashboard_message).EditedTimestamp.Parse).Minutes 1. }}
+  {{ $message := print $dashboard_bot " is down for " $downtime " " $dashboard_hoster }}
+  {{ if $dashboard_downtime_message := (dbGet 0 "campus dashboard is down").Value }}
+  {{ editMessage $dashboard_downtime_thread $dashboard_downtime_message $message }}
+  {{ else }}
+  {{ sendMessageRetID $dashboard_downtime_thread $message | str | dbSet 0 "campus dashboard is down" }}
+  {{ end }}
+{{ else }}
+{{ dbDel 0 "campus dashboard is down" }}
+{{ end }}
