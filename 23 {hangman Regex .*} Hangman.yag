@@ -1,0 +1,60 @@
+{{ $hangman := (dbGet 0 "hangman").Value }}
+{{ if $hangman }}
+  {{ if $letter := reFind "^[a-z]$" (lower $.Message.Content) }}
+    {{ if in ($hangman.Get "guessed") $letter }}
+      {{ deleteMessage nil $.Message.ID 0 }}{{ return }}
+    {{ else }}
+      {{ $hangman.Set "guessed" (print ($hangman.Get "guessed") $letter) }}
+      {{ if in ($hangman.Get "word" | lower) $letter | not }}
+        {{ $hangman.Set "lives" ($hangman.Get "lives" | add -1) }}
+      {{ end }}
+    {{ end }}
+  {{ else }}
+    {{ deleteMessage nil $.Message.ID 0 }}{{ return }}
+  {{ end }}
+  {{ dbSet 0 "hangman" $hangman }}
+{{ else }}
+{{ deleteMessage nil $.Message.ID 0 }}
+{{/*
+To balance Hangman without relying on traditional rules, consider a dynamic system that adjusts difficulty based on word complexity and player fairness. Here’s a structured approach:
+
+1. Base Guesses by Word Length
+Start with a higher number of allowed incorrect guesses for shorter words to offset their tighter margin of error, and scale down for longer words:
+3 letters: 8 guesses
+4 letters: 7 guesses
+5 letters: 6 guesses
+6+ letters: 5 guesses
+Rationale: Shorter words risk ending the game faster with fewer clues, while longer words provide more opportunities to reveal letters.
+
+2. Difficulty Modifiers
+Adjust the base guesses using letter frequency and word structure to account for complexity:
++1 guess for each rare consonant (e.g., Q, Z, X, J, V, K).
+–1 guess if the word contains common vowels (A, E, I, O, U).
++1 guess if the word has no repeating letters (increases uncertainty).
+
+Example:
+A 3-letter word like "PYX" (rare letters, no vowels):
+8 (base) + 2 (Q/Z/X modifier) + 1 (no vowels) = **11 guesses**
+A 5-letter word like "APPLE" (common vowels, repeating letters):
+6 (base) – 1 (common vowels) = **5 guesses**
+*/}}
+{{ $letters := sdict }}
+{{ $noRepeatingLetters := 1 }}
+{{ $wordLength := 0 }}
+{{ range $c := split (lower $.Message.Content) "" }}{{ if in "abcdefghijklmnopqrstuvwxyz" $c }}{{if $letters.HasKey $c}}{{$noRepeatingLetters = 0}}{{end}}{{$letters.Set $c 1}}{{$wordLength = add $wordLength 1}}{{end}}{{end}}
+{{ if lt $wordLength 3 }}{{ $.User.Mention }}, the word has to contain three or more letters.{{ return }}{{ end }}
+{{ $.User.Mention }} started a new word!
+{{- dbSet 0 "hangman" ($hangman = sdict "word" $.Message.Content "guessed" "" "lives" (add 11 ($wordLength | min 6 | mult -1) ($letters.Get "q") ($letters.Get "z") ($letters.Get "x") ($letters.Get "j") ($letters.Get "v") ($letters.Get "k") (add ($letters.Get "a") ($letters.Get "e") ($letters.Get "i") ($letters.Get "o") ($letters.Get "u") | min 1 | mult -1) $noRepeatingLetters)) -}}
+{{- end -}}
+{{- $progress := $hangman.Get "guessed" -}}
+{{- if $progress }}{{ $progress = reReplace (printf "[%s]" $progress) "abcdefghijklmnopqrstuvwxyz" "" | printf "(?i)[%s]" }}{{ else }}{{ $progress = "(?i)[a-z]" }}{{ end -}}
+{{- $progress := reReplace $progress ($hangman.Get "word") "_" -}}
+```
+     +---+
+     |   |      {{ $progress }}
+     {{if lt ($hangman.Get "lives") 6}}0{{else}} {{end}}   |
+    {{if lt ($hangman.Get "lives") 4}}/{{else}} {{end}}{{if lt ($hangman.Get "lives") 5}}|{{else}} {{end}}{{if lt ($hangman.Get "lives") 3}}\{{else}} {{end}}  |      {{range $hangman.Get "lives"}}❤️{{end}}
+    {{if lt ($hangman.Get "lives") 2}}/{{else}} {{end}} {{if lt ($hangman.Get "lives") 1}}\{{else}} {{end}}  |      {{$hangman.Get "guessed"}}
+         |
+     =========  {{ if le ($hangman.Get "lives") 0 }}Game over. Send another word to start again. The word was: {{$hangman.Get "word"}}{{dbDel 0 "hangman"}}{{else if eq $progress ($hangman.Get "word")}}You win! Send another word to start again.{{dbDel 0 "hangman"}}{{end}}
+```
