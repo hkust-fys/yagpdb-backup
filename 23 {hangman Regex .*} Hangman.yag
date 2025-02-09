@@ -10,7 +10,7 @@
       {{ end }}
     {{ end }}
   {{ else }}
-    {{ deleteMessage nil $.Message.ID 0 }}{{ return }}
+    {{ return }}
   {{ end }}
   {{ dbSet 0 "hangman" $hangman }}
 {{ else }}
