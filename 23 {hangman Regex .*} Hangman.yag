@@ -47,8 +47,8 @@ A 5-letter word like "APPLE" (common vowels, repeating letters):
 {{- dbSet 0 "hangman" ($hangman = sdict "word" $.Message.Content "guessed" "" "lives" (add 11 ($wordLength | min 6 | mult -1) ($letters.Get "q") ($letters.Get "z") ($letters.Get "x") ($letters.Get "j") ($letters.Get "v") ($letters.Get "k") (add ($letters.Get "a") ($letters.Get "e") ($letters.Get "i") ($letters.Get "o") ($letters.Get "u") | min 1 | mult -1) $noRepeatingLetters)) -}}
 {{- end -}}
 {{- $progress := $hangman.Get "guessed" -}}
-{{- if $progress }}{{ $progress = reReplace (printf "[%s]" $progress) "abcdefghijklmnopqrstuvwxyz" "" | printf "(?i)[%s]" }}{{ else }}{{ $progress = "(?i)[a-z]" }}{{ end -}}
-{{- $progress := reReplace $progress ($hangman.Get "word") "_" -}}
+{{- if $progress }}{{ $progress = reReplace (printf "[%s]" $progress) "abcdefghijklmnopqrstuvwxyz" "" }}{{ $progress = printf "(?i)[%s]" $progress }}{{ else }}{{ $progress = "(?i)[a-z]" }}{{ end -}}
+{{- if eq $progress "(?i)[]" }}{{ $progress = $hangman.Get "word" }}{{ else }}{{ $progress = reReplace $progress ($hangman.Get "word") "_" }}{{ end -}}
 ```
      +---+
      |   |      {{ $progress }}
