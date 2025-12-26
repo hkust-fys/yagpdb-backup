@@ -1,0 +1,19 @@
+{{ $cat_bot := 966695034340663367 }}{{ $cat_is_ready_role := 1306986935293710408 }}
+{{ $cat_channel_1 := 1147225963906740367 }}{{ $cat_channel_1_role := 1454214772009472162 }}{{ $inactive_1 := "😼│cat-catching．老鼠捉貓" }}
+{{ $cat_channel_2 := 880309027710595133 }}{{ $cat_channel_2_role := 1454215292669530204 }}{{ $inactive_2 := "😼│cat-catching-2．老鼠捉貓" }}
+
+{{ if and (eq .Channel.ID $cat_channel_1) (targetHasRole $cat_bot $cat_channel_1_role) }}
+  {{ takeRole $cat_bot $cat_channel_1_role }}
+  {{ if ne .Channel.Name $inactive_1 }}
+    {{ editChannelName nil $inactive_1 }}
+  {{ end }}
+{{ end }}
+{{ if and (eq .Channel.ID $cat_channel_2) (targetHasRole $cat_bot $cat_channel_2_role) }}
+  {{ takeRole $cat_bot $cat_channel_2_role }}
+  {{ if ne .Channel.Name $inactive_2 }}
+    {{ editChannelName nil $inactive_2 }}
+  {{ end }}
+{{ end }}
+{{ if not (or (targetHasRole $cat_bot $cat_channel_1_role) (targetHasRole $cat_bot $cat_channel_2_role)) }}
+  {{ takeRole $cat_bot $cat_is_ready_role }}
+{{ end }}

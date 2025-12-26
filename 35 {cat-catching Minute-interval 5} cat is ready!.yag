@@ -1,0 +1,10 @@
+{{/* Also see https://yagpdb.xyz/manage/880301598981648416/automod/ruleset/365679 */}}
+{{ $cat_bot := 966695034340663367 }}{{ $cat_ready := "😻cat-ready😻" }}
+{{ $cat_channel_1 := 1147225963906740367 }}{{ $cat_channel_1_role := 1454214772009472162 }}
+{{ $cat_channel_2 := 880309027710595133 }}{{ $cat_channel_2_role := 1454215292669530204 }}
+{{ if and (targetHasRole $cat_bot $cat_channel_1_role) (ne (getChannel $cat_channel_1).Name $cat_ready) }}
+  {{ editChannelName $cat_channel_1 $cat_ready }}
+{{ end }}
+{{ if and (targetHasRole $cat_bot $cat_channel_2_role) (ne (getChannel $cat_channel_2).Name $cat_ready) }}
+  {{ editChannelName $cat_channel_2 $cat_ready }}
+{{ end }}
